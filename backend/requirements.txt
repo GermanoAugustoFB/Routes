@@ -1,0 +1,16 @@
+fastapi
+scikit-learn
+pandas
+numpy
+uvicorn
+geopy
+torch
+ortools
+fuzzywuzzy
+python-Levenshtein
+geopandas
+fiona
+shapely
+pyproj
+requests
+pytest
