@@ -7,74 +7,153 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let routeLayer; // Layer to hold the route
+let points = []; // Array of LatLng points
+let markers = []; // Array of markers
 
-// Form and map selection
-const form = document.querySelector('.routeForm');
-const mapDiv = document.querySelector('.map');
+// Handle map clicks to add points
+map.on('click', (e) => {
+  const marker = L.marker(e.latlng).addTo(map);
+  markers.push(marker);
+  points.push(e.latlng);
+});
 
-// Handle form submission
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const start = document.getElementById('start').value.trim();
-  const end = document.getElementById('end').value.trim();
-
-  // Client-side validation
-  if (!start || !end) {
-    alert('Please enter both start and end addresses.');
+// Compute button
+document.getElementById('compute').addEventListener('click', async () => {
+  if (points.length < 2) {
+    alert('Adicione pelo menos 2 pontos clicando no mapa.');
     return;
   }
 
-  // Show loading state
-  const submitButton = form.querySelector('button');
-  submitButton.disabled = true;
-  submitButton.textContent = 'Calculating...';
+  const computeButton = document.getElementById('compute');
+  computeButton.disabled = true;
+  computeButton.textContent = 'Calculando...';
 
   try {
-    // Fetch route from backend
-    const res = await fetch('http://localhost:3000/rota', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ start, end })
-    });
-
-    if (!res.ok) {
-      throw new Error('Failed to fetch route. Please try again.');
+    // Compute distance matrix (Euclidean in km)
+    const n = points.length;
+    const dist = Array.from({length: n}, () => Array(n).fill(0));
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        if (i !== j) {
+          dist[i][j] = points[i].distanceTo(points[j]) / 1000; // km
+        }
+      }
     }
 
-    const data = await res.json();
+    // ACO for open TSP (no return to start)
+    function aco_tsp(dist, n_ants = 10, n_iterations = 50, alpha = 1, beta = 5, evaporation = 0.5, q = 100) {
+      const n = dist.length;
+      const pheromone = Array.from({length: n}, () => Array(n).fill(1 / n));
+      let best_path = null;
+      let best_length = Infinity;
 
-    // Validate backend response
-    if (!data.geometry || !data.geometry.coordinates) {
-      throw new Error('Invalid route data received from server.');
+      for (let iter = 0; iter < n_iterations; iter++) {
+        const paths = [];
+        const path_lengths = [];
+        for (let ant = 0; ant < n_ants; ant++) {
+          const visited = Array(n).fill(false);
+          let current = 0; // Start from first point
+          visited[current] = true;
+          const path = [current];
+          let length = 0;
+
+          for (let step = 0; step < n - 1; step++) {
+            const probs = [];
+            let total_prob = 0;
+            for (let next = 0; next < n; next++) {
+              if (!visited[next]) {
+                const p = Math.pow(pheromone[current][next], alpha) * Math.pow(1 / (dist[current][next] + 1e-10), beta);
+                probs.push({city: next, p});
+                total_prob += p;
+              }
+            }
+
+            // Roulette wheel selection
+            let r = Math.random() * total_prob;
+            let cum = 0;
+            let next_city = -1;
+            for (const item of probs) {
+              cum += item.p;
+              if (r <= cum) {
+                next_city = item.city;
+                break;
+              }
+            }
+
+            if (next_city === -1) next_city = probs[0].city; // Fallback
+
+            path.push(next_city);
+            visited[next_city] = true;
+            length += dist[current][next_city];
+            current = next_city;
+          }
+
+          paths.push(path);
+          path_lengths.push(length);
+
+          if (length < best_length) {
+            best_length = length;
+            best_path = path.slice();
+          }
+        }
+
+        // Update delta pheromone
+        const delta = Array.from({length: n}, () => Array(n).fill(0));
+        for (let k = 0; k < n_ants; k++) {
+          for (let i = 0; i < n - 1; i++) { // Open path, no close
+            const ci = paths[k][i];
+            const cj = paths[k][i + 1];
+            delta[ci][cj] += q / path_lengths[k];
+            // delta[cj][ci] += q / path_lengths[k]; // Uncomment if symmetric graph
+          }
+        }
+
+        // Update pheromone
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j < n; j++) {
+            pheromone[i][j] = (1 - evaporation) * pheromone[i][j] + delta[i][j];
+          }
+        }
+      }
+
+      return {path: best_path, length: best_length};
     }
 
-    // Convert coordinates to Leaflet format (lat, lng)
-    const routeCoords = data.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+    const result = aco_tsp(dist);
 
-    // Remove blur effect
-    mapDiv.style.filter = 'none';
+    // Ordered points based on best path
+    const ordered_points = result.path.map(i => points[i]);
 
-    // Remove existing route layer if any
+    // Remove existing route
     if (routeLayer) {
       map.removeLayer(routeLayer);
     }
 
-    // Add new route
-    routeLayer = L.polyline(routeCoords, { color: '#0078ff', weight: 5 }).addTo(map);
+    // Add new route (straight lines)
+    routeLayer = L.polyline(ordered_points, { color: '#0078ff', weight: 5 }).addTo(map);
 
-    // Adjust map zoom to fit route
+    // Fit map to route
     map.fitBounds(routeLayer.getBounds());
 
-    // Display route info (optional)
-    alert(`Route calculated!\nDistance: ${data.distance} km\nDuration: ${data.duration} minutes`);
+    alert(`Rota otimizada calculada!\nDistância total: ${result.length.toFixed(2)} km`);
 
   } catch (error) {
-    alert(error.message || 'Error fetching route. Please try again.');
+    alert(error.message || 'Erro ao calcular rota. Tente novamente.');
     console.error(error);
   } finally {
-    // Reset loading state
-    submitButton.disabled = false;
-    submitButton.textContent = 'Calcular Rota';
+    computeButton.disabled = false;
+    computeButton.textContent = 'Calcular Rota Otimizada';
   }
+});
+
+// Clear button
+document.getElementById('clear').addEventListener('click', () => {
+  points = [];
+  markers.forEach(marker => map.removeLayer(marker));
+  markers = [];
+  if (routeLayer) {
+    map.removeLayer(routeLayer);
+    routeLayer = null;
+  }
+  alert('Pontos limpos!');
 });
