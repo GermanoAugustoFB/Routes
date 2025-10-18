@@ -8,6 +8,10 @@ Optimized route between Uberlândia and Belo Horizonte (518.10 km):
 
 ![Optimized Route Demo](https://github.com/GermanoAugustoFB/Routes/blob/main/assets/demo1.png)
 
+Optimized route between São Paulo and Rio de Janeiro (432.28 km):
+
+![Optimized Route Demo](https://github.com/GermanoAugustoFB/Routes/blob/main/assets/demo3.png)
+
 A web-based application to optimize routes between multiple points using the Ant Colony Optimization (ACO) algorithm. Users can click on a map to add waypoints, and the app calculates the most efficient route to visit all points, minimizing the total distance traveled.
 
 # ✨ Features
