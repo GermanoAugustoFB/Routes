@@ -14,97 +14,150 @@ Optimized route between São Paulo and Rio de Janeiro (432.28 km):
 
 A web-based application to optimize routes between multiple points using the Ant Colony Optimization (ACO) algorithm. Users can click on a map to add waypoints, and the app calculates the most efficient route to visit all points, minimizing the total distance traveled.
 
-# ✨ Features
+✨ Features
 
-  -  Interactive Map: Click on the map to add waypoints using Leaflet.js with OpenStreetMap tiles.
-  -  Route Optimization: Utilizes the ACO algorithm to find the optimal order for visiting multiple points (open TSP).
-  -  Euclidean Distances: Calculates straight-line distances between points for lightweight client-side processing.
-  -  Clear Interface: Simple UI with buttons to compute the optimized route or clear all points.
-  -  Responsive Design: Works on desktop and mobile devices with a clean, modern look.
+🗺️ Interactive Map: Add waypoints by clicking on a Leaflet.js map using OpenStreetMap tiles.
 
-# 🛠️ Technologies Used
+🧠 Smart Optimization: Uses the Ant Colony Optimization (ACO) algorithm to find the optimal order of visits (open TSP).
 
-  - HTML5 & CSS3: For structure and styling.
-  - JavaScript: Core logic and map interaction.
-  - Leaflet.js: Interactive map rendering (version 1.9.4).
-  - Ant Colony Optimization: Bio-inspired algorithm for route optimization.
-  - OpenStreetMap: Free map tiles for visualization.
+🛣️ Real-World Distances: Integrates with OSRM (Open Source Routing Machine) to compute driving distances and routes instead of straight-line approximations.
 
-# 🚀 Getting Started
+🚗 Animated Route Playback: Displays a moving vehicle marker following the optimized route.
+
+🧹 Simple UI: Buttons to calculate, clear points, and visualize the optimized route easily.
+
+📱 Responsive Design: Works seamlessly on desktop and mobile devices.
+
+🛠️ Technologies Used
+
+HTML5 & CSS3: Structure and styling.
+
+JavaScript (ES6): Core logic and ACO algorithm.
+
+Leaflet.js (v1.9.4): Interactive map rendering.
+
+OSRM API: Fetches real-world driving distances and geometries.
+
+OpenStreetMap: Free and open map tiles for visualization.
+
+🚀 Getting Started
 Prerequisites
 
-  -  A modern web browser (Chrome, Firefox, Edge, etc.).
-  -  No backend required for the current version (uses Euclidean distances).
+A modern web browser (Chrome, Firefox, Edge, etc.).
 
-# Installation
+Internet connection (for OSRM and OSM tiles).
+
+No backend required – all computation runs client-side.
+
+Installation
 
 Clone the repository:
+```bash
+git clone https://github.com/GermanoAugustoFB/Routes.git
+```
+
+Navigate to the project folder:
+```bash
+cd Routes
+```
+
+Open the app:
+
+Use a local server (e.g., VS Code’s Live Server) for best results,
+or open index.html directly in your browser.
+
+⚙️ Usage
+
+Open the app in your browser.
+
+Click on the map to add waypoints (markers will appear).
+
+Click “Calcular Rota Otimizada” to run the ACO algorithm.
+
+The optimized route will be drawn in blue, showing the total driving distance.
+
+Watch the vehicle marker follow the optimized path!
+
+Click “Limpar Pontos” to reset and start over.
+
+📋 How It Works
+Map Interaction
+
+Powered by Leaflet.js, the map initializes centered on Brazil ([-19.75, -47.93]).
+Each map click adds a new waypoint marker.
+
+Real-World Distances (OSRM)
+
+The app queries the OSRM API to:
+
+Compute the distance matrix between all points.
+
+Retrieve driving routes (polylines) for visualization.
+
+Ant Colony Optimization (ACO)
+
+The ACO algorithm finds the shortest path visiting all points once (open TSP).
+Parameters:
+
+Ants: 10
+
+Iterations: 50
+
+α = 1, β = 5, Evaporation = 0.5, Q = 100
+
+Vehicle Animation
+
+After computing the route, a vehicle icon moves along the optimized path to visualize travel.
+
+🔮 Future Improvements
+
+🗺️ Support for custom ACO parameters (adjust ants, iterations, etc. via UI).
+
+🚘 Add route details (segment distances, estimated time).
+
+🏷️ Add point labels or popups for easier identification.
+
+⚙️ Integrate with backend-based routing (custom OSRM server or GraphHopper).
+
+🧩 Implement max waypoint limit for performance optimization.
+
+🐜 About ACO
+
+The Ant Colony Optimization algorithm is a bio-inspired heuristic based on how ants find the shortest paths using pheromone trails.
+In this project, it solves an open Traveling Salesman Problem (TSP) — finding the optimal visiting order of multiple points without returning to the start.
+
+📜 License
+
+This project is licensed under the MIT License – see the LICENSE file for details.
+
+🙌 Contributing
+
+Contributions are welcome!
+To contribute:
+
+# Fork the repository
 ```bash
   git clone https://github.com/GermanoAugustoFB/Routes.git
 ```
 
-Navigate to the project directory:
+# Create a new branch
 ```bash
-  cd Routes
+git checkout -b feature/YourFeature
 ```
 
-
-# Open index.html in a browser:
-  - Use a local server (e.g., VS Code's Live Server) for best results, or open directly in a browser.
-
-
-
-# Usage
-
-Open the app in your browser.
-Click on the map to add waypoints (markers will appear).
-Click "Calculate Optimized Route" to compute the shortest path visiting all points using ACO.
-View the optimized route as a blue polyline on the map, with the total distance displayed.
-Click "Clear Points" to reset and start over.
-
-# 📋 How It Works
-
-Map Interaction: Powered by Leaflet.js, users add points by clicking on the map, centered initially on Brazil ([-19.75, -47.93]).
-ACO Algorithm: The Ant Colony Optimization algorithm optimizes the order of waypoints to minimize total distance (open TSP, no return to start).
-Parameters: 10 ants, 50 iterations, α=1, β=5, evaporation=0.5, Q=100.
-Uses Euclidean distances calculated via Leaflet's distanceTo method.
-
-
-Visualization: The optimized route is drawn as a polyline, and the map auto-zooms to fit all points.
-
-# 🔧 Future Improvements
-
-Real-World Distances: Integrate with a backend (e.g., OSRM) to compute road-based distances and geometries.
-Custom Parameters: Allow users to tweak ACO parameters (e.g., number of ants, iterations) via the UI.
-Point Labels: Add labels or popups to markers for better identification.
-Route Details: Display additional info like segment distances or estimated travel time.
-Point Limit: Implement a maximum number of waypoints to prevent performance issues.
-
-# 🐜 About ACO
-The Ant Colony Optimization algorithm is a bio-inspired metaheuristic that mimics how ants find the shortest paths by depositing pheromones. In this project, it solves an open Traveling Salesman Problem (TSP), finding the best order to visit all points without returning to the start.
-# 📜 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-# 🙌 Contributing
-Contributions are welcome! Please fork the repo, make your changes, and submit a pull request.
-
-Fork the repository.
-Create a feature branch:
+# Commit your changes
 ```bash
-  git checkout -b feature/YourFeature
- ```
-
-Commit your changes:
-```bash
-  git commit -m 'Add YourFeature'
-```
-Push to the branch:
-```bash 
-  git push origin feature/YourFeature
+git commit -m "Add YourFeature"
 ```
 
-Open a pull request.
+# Push to your fork
+```bash
+git push origin feature/YourFeature
+```
 
-# 📧 Contact
-For questions or suggestions, reach out via GitHub Issues.
+Then open a Pull Request 🚀
 
+📧 Contact
+
+For questions or suggestions, open an issue on GitHub Issues.
 Built with ☕ and passion by GermanoAugustoFB.
